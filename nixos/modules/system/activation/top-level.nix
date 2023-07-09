@@ -66,15 +66,6 @@ let
       mkdir $out/bin
       export localeArchive="${config.i18n.glibcLocales}/lib/locale/locale-archive"
       export distroId=${config.system.nixos.distroId};
-      substituteAll ${./switch-to-configuration.pl} $out/bin/switch-to-configuration
-      chmod +x $out/bin/switch-to-configuration
-      ${optionalString (pkgs.stdenv.hostPlatform == pkgs.stdenv.buildPlatform) ''
-        if ! output=$($perl/bin/perl -c $out/bin/switch-to-configuration 2>&1); then
-          echo "switch-to-configuration syntax is not valid:"
-          echo "$output"
-          exit 1
-        fi
-      ''}
 
       ${config.system.systemBuilderCommands}
 
@@ -101,11 +92,7 @@ let
     passAsFile = [ "extraDependencies" ];
     buildCommand = systemBuilder;
 
-    inherit (pkgs) coreutils;
     systemd = config.systemd.package;
-    shell = "${pkgs.bash}/bin/sh";
-    su = "${pkgs.shadow.su}/bin/su";
-    utillinux = pkgs.util-linux;
 
     kernelParams = config.boot.kernelParams;
     installBootLoader = config.system.build.installBootLoader;
@@ -114,9 +101,6 @@ let
     nixosLabel = config.system.nixos.label;
 
     inherit (config.system) extraDependencies;
-
-    # Needed by switch-to-configuration.
-    perl = pkgs.perl.withPackages (p: with p; [ ConfigIniFiles FileSlurp ]);
   } // config.system.systemBuilderArgs);
 
   # Handle assertions and warnings
